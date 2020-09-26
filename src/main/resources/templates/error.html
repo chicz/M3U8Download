@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Error Page</title>
+    <link rel="stylesheet" th:href="@{/bootstrap-3.3.7-dist/css/bootstrap.min.css}">
+</head>
+<body>
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-body">
+            <div class="row">
+                <div class="col-md-5" style="line-height: 500px;text-align: center;">
+                    <div style="display: inline-block;vertical-align: middle;line-height: 50px;">
+                        <p>怎么就出错了呢？让我康康</p>
+                        <img th:src="@{/image/error_aimiliya.jpg}" style="max-width: 400px;max-height: 300px;padding-top: 20px;">
+                    </div>
+                </div>
+                <div class="col-md-7" style="line-height: 500px;text-align: center;">
+                    <div style="display: inline-block;vertical-align: middle;line-height: 50px;">
+                        <p>状态码：<span th:text="${status}"></span></p>
+                        <p>出错地址：<span th:text="${path}"></span></p>
+                        <p>出错详情：<span th:text="${message}"></span> </p>
+                        <a class="btn btn-default btn-lg" href="/chicz/index" role="button">主页</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

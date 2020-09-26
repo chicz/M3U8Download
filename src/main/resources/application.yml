@@ -1,0 +1,30 @@
+server:
+  port: 8080
+  tomcat:
+    connection-timeout: 20000
+
+spring:
+  thymeleaf:
+    enabled: true
+    encoding: UTF-8 #默认
+    prefix: classpath:/templates/ #默认
+    cache: false #默认true，不禁用的话，修改html不刷新
+    mode: HTML #默认
+    suffix: .html #默认
+
+  datasource:
+    platform: mysql
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/overlord?serverTimezone=UTC
+    username: root
+    password: hqu.edu.cn
+    tomcat:
+      test-while-idle: true
+      validation-query: select 1
+  jpa:
+    database: mysql
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+

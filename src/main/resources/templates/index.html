@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Home Page</title>
+    <link rel="stylesheet" th:href="@{/bootstrap-3.3.7-dist/css/bootstrap.min.css}">
+    <script type="text/javascript" th:src="@{/jquery/jquery-3.2.1.min.js}"></script>
+    <script type="text/javascript" th:src="@{/jquery/jquery.form.js}"></script>
+    <script type="text/javascript" th:src="@{/bootstrap-3.3.7-dist/js/bootstrap.min.js}"></script>
+    <style>
+        .singleLine{
+            /*white-space:nowrap;*/
+            overflow:hidden;
+            text-overflow:ellipsis;
+        }
+    </style>
+</head>
+<body>
+
+<div class="modal fade bs-example-modal-lg" id="mySmallModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden='true' data-backdrop='static'>
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div style="width: 100%;height: 100%;padding: 5%;text-align: center;">
+                <h3>搜寻资源中</h3>
+                <div class="progress">
+                    <div id="myProgress" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+                        0%
+                    </div>
+                </div>
+                <button id="downStart" type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg" disabled="disabled">点击下载</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-body" style="min-height: 1000px;background: #f0f0f0 url('/image/bg_miku.jpg') no-repeat;
+background-size: 50%;background-position-x: right;background-position-y: bottom;">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="col-md-12" style="text-align: center;"><span>下载m3u8文件（获取文件后需根据文件里的地址再下载一次）</span></div>
+                    <form id="form-left" action="" method="post">
+                        <br/>
+                        File Uri:
+                        <input class="form-control" type="text" placeholder="m3u8 file url" id="file_url" name="file_url">
+                        <br/>
+                        <input id="download_left" type="button" class="btn btn-info btn-lg btn-block" value="&nbsp;下&nbsp;&nbsp;&nbsp;&nbsp;载&nbsp;">
+                        <br/>
+                    </form>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="col-md-12" style="text-align: center;"><span>根据m3u8文件视频列表下载视频</span></div>
+                    <form id="form-by-file" action="" method="post" enctype="multipart/form-data">
+                        <br/>
+                        Media Uri:
+                        <input class="form-control" type="text" placeholder="mediaUri" id="mediaUri" name="mediaUri">
+                        <br/>
+                        M3U8 file:
+                        <input class="form-control" type="file" placeholder="mediaFile" id="mediaFile" name="mediaFile" accept=".m3u8, .M3U8">
+                        <br/>
+                        <input id="download" type="button" class="btn btn-info btn-lg btn-block" value="&nbsp;下&nbsp;&nbsp;&nbsp;&nbsp;载&nbsp;">
+                        <br/>
+                    </form>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="col-md-12" style="text-align: center;"><span>根据链接下载m3u8视频</span></div>
+                    <form id="form-right" action="" method="post">
+                        <br/>
+                        Media Uri:
+                        <input class="form-control" type="text" placeholder="mediaUri_no_m3u8_file" id="mediaUri_no_file" name="mediaUri_no_file">
+                        <br/>
+                        <input id="download_right" type="button" class="btn btn-info btn-lg btn-block" value="&nbsp;下&nbsp;&nbsp;&nbsp;&nbsp;载&nbsp;">
+                    </form>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <button type="button" class="btn btn-default" onclick="getVideoAddress()">
+                        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span> 刷新
+                    </button>
+                </div>
+                <div class="col-md-12">
+                    <table id="video_address" class="table table-striped table-bordered table-hover" style="table-layout: fixed;">
+                        <thead>
+                        <tr class="info">
+                            <td>序号</td>
+                            <td>名称</td>
+                            <td>集几</td>
+                            <td>路径</td>
+                            <td>封面</td>
+                            <td>大小</td>
+                            <td>时长</td>
+                            <td>其他</td>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!--<tr th:each="video,videoStat: ${videoList}">
+                            <th scope="row" th:text="${videoStat.index + 1}">1</th>
+                            <td th:text="${video.fileName}"></td>
+                            <td th:text="${video.fileEpisode}"></td>
+                            <td th:text="${video.filePath}"></td>
+                            <td th:text="${video.filePic}"></td>
+                            <td th:text="${video.fileSize}"></td>
+                            <td th:text="${video.fileDuration}"></td>
+                            <td th:text="${video.fileDescribe}"></td>
+                        </tr>-->
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+
+            <div class="row" style="display: none;">
+                <div class="col-md-3 col-xs-6 col-sm-6">
+                    <div style="display: inline-block;vertical-align: middle;line-height: 50px;width: 100%;text-align: center">
+                        <img th:src="@{/image/error_lamu.jpg}" style="max-width: 400px;max-height: 300px;padding-top: 20px;">
+                    </div>
+                </div>
+                <div class="col-md-3 col-xs-6 col-sm-6">
+                    <div style="display: inline-block;vertical-align: middle;line-height: 50px;width: 100%;text-align: center">
+                        <img th:src="@{/image/error_leimu.jpg}" style="max-width: 400px;max-height: 300px;padding-top: 20px;">
+                    </div>
+                </div>
+                <div class="col-md-3 col-xs-6 col-sm-6">
+                    <div style="display: inline-block;vertical-align: middle;line-height: 50px;width: 100%;text-align: center">
+                        <img th:src="@{/image/error_leimu.jpg}" style="max-width: 400px;max-height: 300px;padding-top: 20px;">
+                    </div>
+                </div>
+                <div class="col-md-3 col-xs-6 col-sm-6">
+                    <div style="display: inline-block;vertical-align: middle;line-height: 50px;width: 100%;text-align: center">
+                        <img th:src="@{/image/error_lamu.jpg}" style="max-width: 400px;max-height: 300px;padding-top: 20px;">
+                    </div>
+                </div>
+            </div>
+            <br>
+            <!--style="background:url('/image/bg1.jpg') no-repeat fixed center"-->
+            <div class="row" style="display: none;">
+                <div class="clo-md-12" style="padding-left: 10px;">
+                    <p>测试链接1：http://iqiyi.cdn9-okzy.com/20200913/15396_0c748d9a/index.m3u8?sign=81576ac44e605640a3d22dbc6327f9c4</p>
+                    <p>测试链接2：https://youku.com-youku.net/20180630/15495_00e2d09e/index.m3u8</p>
+                    <p>测试链接3：http://acfun.iqiyi-kuyun.com/20180919/EZPQV6c5/index.m3u8</p>
+                    <br/>
+                    <input id="btnTest" type="button" class="btn btn-danger btn-lg btn-block" value="测试" disabled>
+                    <br>
+                    <input id="mergeTs" type="button" class="btn btn-info btn-lg btn-block" value="&nbsp;合&nbsp;&nbsp;&nbsp;&nbsp;并&nbsp;" disabled>
+                    <br/>
+                    <input id="delFiles" type="button" class="btn btn-info btn-lg btn-block" value="&nbsp;删除临时文件&nbsp;" disabled>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script type="text/javascript">
+
+    (function () {
+        getVideoAddress()
+    } ());
+
+    $("#btnTest").click(function () {
+        $.ajax({
+            url : './allTest',
+            type : 'GET',
+            success : function (data) {
+                if(window.console){
+                    console.log("success: "+data);
+                }
+            },
+            error : function (data) {
+                if(window.console){
+                    console.log("error: "+data);
+                }
+            }
+        })
+    });
+    $("#mergeTs").click(function () {
+        $.ajax({
+            url : './mergeTs',
+            type : 'GET',
+            success : function (data) {
+                if(window.console){
+                    console.log("success: "+data);
+                }
+            },
+            error : function (data) {
+                if(window.console){
+                    console.log("error: "+data);
+                }
+            }
+        })
+    });
+    $("#delFiles").click(function () {
+        $.ajax({
+            url : './deleteFiles',
+            type : 'GET',
+            success : function (data) {
+                if(window.console){
+                    console.log("success: "+data);
+                }
+            },
+            error : function (data) {
+                if(window.console){
+                    console.log("error: "+data);
+                }
+            }
+        })
+    });
+    $("#download").click(function () {
+        $("#form-by-file").ajaxSubmit({
+            url : './download',
+            type : 'post',
+            dataType : 'JSON',
+            beforeSend : function () {
+                $("#mySmallModal").modal({
+                    backdrop : 'static',
+                    keyboard : false,
+                });
+                $("#mySmallModal").modal('show');
+                $("#downStart").attr("disabled","disabled").text("点击下载");
+            },
+            success : function (data) {
+                if(window.console){
+                    console.log("success: data.code=["+data.code+"],data.msg=["+data.msg+"]");
+                    console.log("success: data.url=["+data.url+"]");
+                }
+                getProgress(data.msg,'./getMiddleProgress');
+                $("#downStart").on("click",function () {
+                    var form1 = $('<form></form>');
+                    form1.attr("action","./getLocalFile");
+                    form1.attr("method","POST");
+                    var input1 = $("<input type='hidden' name='local_url' />");
+                    input1.attr("value",data.url);
+                    form1.append(input1);
+                    form1.appendTo("body");
+                    form1.css("display",'none');
+                    form1.submit();
+                });
+            },
+            error : function (data) {
+                if(window.console){
+                    console.log("error: data.code=["+data.code+"],data.msg=["+data.msg+"]");
+                    console.log("error: data.url=["+data.url+"]");
+                }
+                $("#downStart").removeAttr("disabled").text("搜寻失败");
+            },
+            complete : function () {
+
+            }
+        })
+    });
+    $("#download_right").click(function () {
+        $("#form-right").ajaxSubmit({
+            url : './download_no_file',
+            type : 'post',
+            dataType : 'JSON',
+            beforeSend : function () {
+                $("#mySmallModal").modal({
+                    backdrop : 'static',
+                    keyboard : false,
+                });
+                $("#mySmallModal").modal('show');
+                $("#downStart").attr("disabled","disabled").text("点击下载");
+            },
+            success : function (data) {
+                if(window.console){
+                    console.log("success: data.code=["+data.code+"],data.msg=["+data.msg+"]");
+                    console.log("success: data.url=["+data.url+"]");
+                }
+                getProgress(data.msg,'./getRightProgress');
+                $("#downStart").on("click",function () {
+                    var form1 = $('<form></form>');
+                    form1.attr("action","./getLocalFile");
+                    form1.attr("method","POST");
+                    var input1 = $("<input type='hidden' name='local_url' />");
+                    input1.attr("value",data.url);
+                    form1.append(input1);
+                    form1.appendTo("body");
+                    form1.css("display",'none');
+                    form1.submit();
+                });
+                //$("#mySmallModal").modal('hide');
+            },
+            error : function (data) {
+                if(window.console){
+                    console.log("error: data.code=["+data.code+"],data.msg=["+data.msg+"]");
+                    console.log("error: data.url=["+data.url+"]");
+                }
+                $("#downStart").removeAttr("disabled").text("搜寻失败");
+                //$("#mySmallModal").modal('hide');
+            },
+            complete : function () {
+
+            }
+        })
+    });
+    $("#download_left").click(function () {
+        //不能用ajax下载文件
+        $("#form-left").attr("action","./getFileByUrl");
+        $("#form-left").attr("method","post");
+        $("#form-left").submit();
+        /*$("#form-left").ajaxSubmit({
+            url : './getFileByUrl',
+            type : 'POST',
+            dataType : 'JSON',
+            beforeSend : function () {
+
+            },
+            success : function (data) {
+                if(window.console){
+                    console.log("success: "+data);
+                }
+            },
+            error : function (data) {
+                if(window.console){
+                    console.log("error: "+data);
+                }
+            },
+            complete : function () {
+
+            }
+        })*/
+    });
+    var timer;
+    function getProgress(total,url) {
+        timer = setInterval(function(){
+            $.ajax({
+                url: url,
+                type: 'POST',
+                dataType: 'text',
+                data: {
+                    total : total,
+                },
+                success: function (data) {
+                    if(window.console){
+                        console.log("get_progress_success:"+data);
+                        /*console.log(data==100);//true
+                        console.log(data=='100');//true*/
+                    }
+                    //更新ui
+                    $("#myProgress").attr("aria-valuenow",data).width(data+"%").text(data+"%");
+
+                    if(data==100){
+                        console.log("complete progress");
+                        clearInterval(timer);
+                        $("#downStart").removeAttr("disabled");
+                    }
+                },
+                error: function(data){
+                    if(window.console){
+                        console.log("get_progress_error:"+data);
+                    }
+                    clearInterval(timer);
+                }
+            });
+        }, 500);
+    }
+
+    function getVideoAddress() {
+
+        $.ajax({
+            url: '/app/getAll',
+            type: 'GET',
+            dataType: 'json',
+            success: function (data) {
+                if(window.console){
+                    console.log("/app/getAll success: "+data+" , dataSize:"+data.size+" , dataLength:"+data.length);
+                    console.log("success test: "+data[0].fileName);
+                }
+                var str = "";
+                for(var i=0;i<data.length;i++){
+                    str += "<tr width='100%'><td class='singleLine' width='5%'>" + (i+1) +
+                        "</td><td class='singleLine' width='10%'>" + data[i].fileName +
+                        "</td><td class='singleLine' width='10%'>" + data[i].fileEpisode +
+                        "</td><td class='singleLine' width='25%'>" + data[i].filePath +
+                        "</td><td class='singleLine' width='20%'>" + data[i].filePic +
+                        "</td><td class='singleLine' width='5%'>" + data[i].fileSize +
+                        "</td><td class='singleLine' width='5%'>" + data[i].fileDuration +
+                        "</td><td class='singleLine' width='20%'>" + data[i].fileDescribe + "</td></tr>";
+                }
+                $("#video_address").find("tbody").html(str);
+            },
+            error: function(data){
+                if(window.console){
+                    console.log("/app/getAll error: "+data);
+                }
+            }
+        });
+    }
+</script>
+</html>
