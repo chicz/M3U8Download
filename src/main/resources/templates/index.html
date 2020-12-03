@@ -9,73 +9,94 @@
     <script type="text/javascript" th:src="@{/bootstrap-3.3.7-dist/js/bootstrap.min.js}"></script>
     <style>
         .singleLine{
-            /*white-space:nowrap;*/
+            white-space:nowrap;
             overflow:hidden;
-            text-overflow:ellipsis;
+            text-overflow:clip;
+        }
+        .underline{
+            border-bottom: 1px solid rgba(64, 64, 64, 0.31);
+        }
+        .downDiv{
+            width: 100%;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+        .right{
+            margin-left: 5px;
+            float: right;
         }
     </style>
 </head>
 <body>
 
+<!--模态框，m3u8视频先下载到服务器-->
 <div class="modal fade bs-example-modal-lg" id="mySmallModal" tabindex="-1" role="dialog" aria-labelledby="mySmallModalLabel" aria-hidden='true' data-backdrop='static'>
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
-            <div style="width: 100%;height: 100%;padding: 5%;text-align: center;">
-                <h3>搜寻资源中</h3>
-                <div class="progress">
-                    <div id="myProgress" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
-                        0%
-                    </div>
+            <div class="modal-header">
+                <span>下载列表</span>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body">
+                <!--<dl class="underline">
+                    <dt>
+                        <div class="downDiv">
+                            测试链接3：http://acfun.iqiyi-kuyun.com/20180919/EZPQV6c5/index.m3u8测试链接3：http://acfun.iqiyi-kuyun.com/20180919/EZPQV6c5/index.m3u8
+                            <button id="cancelDown" type="button" class="btn btn-danger right">取消</button>
+                            <button id="downStart" type="button" class="btn btn-primary right" disabled="disabled">下载</button>
+                        </div>
+                    </dt>
+                    <dd>
+                        <div class="progress">
+                            <div id="myProgress" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+                                0%
+                            </div>
+                        </div>
+                    </dd>
+                </dl>-->
+                <div style="width: 100%;text-align: center;">
+                    <img th:src="@{/image/loading.gif}" style="width: 50%;">
                 </div>
-                <button id="downStart" type="button" class="btn btn-primary" data-toggle="modal" data-target=".bs-example-modal-lg" disabled="disabled">点击下载</button>
             </div>
         </div>
     </div>
 </div>
+
 <div class="container">
     <div class="panel panel-default">
         <div class="panel-body" style="min-height: 1000px;background: #f0f0f0 url('/image/bg_miku.jpg') no-repeat;
 background-size: 50%;background-position-x: right;background-position-y: bottom;">
             <div class="row">
-                <div class="col-md-4">
-                    <div class="col-md-12" style="text-align: center;"><span>下载m3u8文件（获取文件后需根据文件里的地址再下载一次）</span></div>
+                <div class="col-md-12">
+                    <button id="taskListBtn" type="button" class="btn btn-default" onclick="getTaskList();" data-toggle="modal" data-target="#mySmallModal" style="float: right;">任务列表</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="col-md-12" style="text-align: center;"><span>下载文件（单纯的文件下载）</span></div>
                     <form id="form-left" action="" method="post">
                         <br/>
                         File Uri:
-                        <input class="form-control" type="text" placeholder="m3u8 file url" id="file_url" name="file_url">
+                        <input class="form-control" type="text" placeholder="file url" id="file_url" name="file_url">
                         <br/>
                         <input id="download_left" type="button" class="btn btn-info btn-lg btn-block" value="&nbsp;下&nbsp;&nbsp;&nbsp;&nbsp;载&nbsp;">
                         <br/>
                     </form>
                 </div>
 
-                <div class="col-md-4">
-                    <div class="col-md-12" style="text-align: center;"><span>根据m3u8文件视频列表下载视频</span></div>
-                    <form id="form-by-file" action="" method="post" enctype="multipart/form-data">
-                        <br/>
-                        Media Uri:
-                        <input class="form-control" type="text" placeholder="mediaUri" id="mediaUri" name="mediaUri">
-                        <br/>
-                        M3U8 file:
-                        <input class="form-control" type="file" placeholder="mediaFile" id="mediaFile" name="mediaFile" accept=".m3u8, .M3U8">
-                        <br/>
-                        <input id="download" type="button" class="btn btn-info btn-lg btn-block" value="&nbsp;下&nbsp;&nbsp;&nbsp;&nbsp;载&nbsp;">
-                        <br/>
-                    </form>
-                </div>
-
-                <div class="col-md-4">
+                <div class="col-md-6">
                     <div class="col-md-12" style="text-align: center;"><span>根据链接下载m3u8视频</span></div>
                     <form id="form-right" action="" method="post">
                         <br/>
                         Media Uri:
-                        <input class="form-control" type="text" placeholder="mediaUri_no_m3u8_file" id="mediaUri_no_file" name="mediaUri_no_file">
+                        <input class="form-control" type="text" placeholder="mediaUri_no_m3u8_file" id="video_url" name="video_url">
                         <br/>
                         <input id="download_right" type="button" class="btn btn-info btn-lg btn-block" value="&nbsp;下&nbsp;&nbsp;&nbsp;&nbsp;载&nbsp;">
                     </form>
                 </div>
             </div>
 
+            <!--数据库列表展示-->
             <div class="row">
                 <div class="col-md-12">
                     <button type="button" class="btn btn-default" onclick="getVideoAddress()">
@@ -86,14 +107,14 @@ background-size: 50%;background-position-x: right;background-position-y: bottom;
                     <table id="video_address" class="table table-striped table-bordered table-hover" style="table-layout: fixed;">
                         <thead>
                         <tr class="info">
-                            <td>序号</td>
-                            <td>名称</td>
-                            <td>集几</td>
-                            <td>路径</td>
-                            <td>封面</td>
-                            <td>大小</td>
-                            <td>时长</td>
-                            <td>其他</td>
+                            <td width="5%">序号</td>
+                            <td width="10%">名称</td>
+                            <td width="10%">集几</td>
+                            <td width="25%">路径</td>
+                            <td width="16%">封面</td>
+                            <td width="10%">大小</td>
+                            <td width="10%">时长</td>
+                            <td width="14%">其他</td>
                         </tr>
                         </thead>
                         <tbody>
@@ -113,6 +134,7 @@ background-size: 50%;background-position-x: right;background-position-y: bottom;
                 </div>
             </div>
 
+            <!--图片布局测试-->
             <div class="row" style="display: none;">
                 <div class="col-md-3 col-xs-6 col-sm-6">
                     <div style="display: inline-block;vertical-align: middle;line-height: 50px;width: 100%;text-align: center">
@@ -144,10 +166,6 @@ background-size: 50%;background-position-x: right;background-position-y: bottom;
                     <p>测试链接3：http://acfun.iqiyi-kuyun.com/20180919/EZPQV6c5/index.m3u8</p>
                     <br/>
                     <input id="btnTest" type="button" class="btn btn-danger btn-lg btn-block" value="测试" disabled>
-                    <br>
-                    <input id="mergeTs" type="button" class="btn btn-info btn-lg btn-block" value="&nbsp;合&nbsp;&nbsp;&nbsp;&nbsp;并&nbsp;" disabled>
-                    <br/>
-                    <input id="delFiles" type="button" class="btn btn-info btn-lg btn-block" value="&nbsp;删除临时文件&nbsp;" disabled>
                 </div>
             </div>
         </div>
@@ -156,9 +174,128 @@ background-size: 50%;background-position-x: right;background-position-y: bottom;
 </body>
 <script type="text/javascript">
 
+    var loading_div = $("<div style='width: 100%;text-align: center;'></div>");
+    var loading_img = $("<img th:src='@{/image/loading.gif}' style='width: 50%;'>");
+    loading_div.append(loading_img);
+
+    var timers = [];
+
     (function () {
-        getVideoAddress()
+        getVideoAddress();
     } ());
+
+    function getTaskList(){
+        var form1 = $('<form></form>');
+        form1.attr("action","./getTaskList");
+        form1.attr("method","GET");
+        form1.appendTo("body");
+        form1.css("display",'none');
+        form1.ajaxSubmit({
+            beforeSend: function(){
+                $(".modal-body").empty();
+                $(".modal-body").append(loading_div);
+                $.each(timers,function (index,timer) {
+                    clearInterval(timer);
+                });
+                timers = [];
+            },
+           success : function (data) {
+                console.log("getTaskList Success:"+data);
+               $(".modal-body").empty();
+               $.each(data,function (index, item) {
+                   var dl = $("<dl class='underline'></dl>");
+                   var dt = $("<dt></dt>");
+                   var down_div = $("<div class='downDiv'></div>");
+                   var btn_cancel = $("<button type='button' class='btn btn-danger right'></button>").append("删除");
+                   btn_cancel.attr("name",index+"_c");
+                   btn_cancel.click(function () {
+                       console.log("cancel_btn:"+index);
+                       $.ajax({
+                           url: './cancelDown',
+                           type: 'POST',
+                           dataType: 'json',
+                           data: {
+                               file_name: index,
+                           },
+                           success: function (data) {
+                               console.log("cancel_success:"+index+",data.code="+data.code);
+                               if("00"==data.code){
+                                   getTaskList();
+                               }
+                           },
+                           error: function (data) {
+                               console.log("cancel_error:"+index);
+                           },
+                       })
+                   });
+                   var btn_down = $("<button type='button' class='btn btn-primary right' disabled></button>").append("下载");
+                   btn_down.attr("name",index+"_d");
+                   btn_down.click(function () {
+                       console.log("down_btn:"+index);
+                       var form1 = $('<form></form>');
+                       form1.attr("action","./getLocalFile");
+                       form1.attr("method","POST");
+                       var input1 = $("<input type='hidden' name='local_name' />");
+                       input1.attr("value",index);
+                       form1.append(input1);
+                       form1.appendTo("body");
+                       form1.css("display",'none');
+                       form1.submit();
+                   });
+                   down_div.append(item).append(btn_cancel).append(btn_down);
+                   dt.append(down_div);
+
+                   var dd = $("<dd></dd>");
+                   var progress_div = $("<div class='progress'></div>");
+                   var progress_bar = $("<div class='progress-bar' role='progressbar' aria-valuenow='0' aria-valuemin='0' aria-valuemax='100' style='width:0%;'></div>").append("0%");
+                   progress_bar.attr("name",index+"_p");
+                   progress_div.append(progress_bar);
+                   dd.append(progress_div);
+                   dl.append(dt).append(dd).appendTo(".modal-body");
+
+                   var timer;
+                   getProgress(index,timer);
+                   timers.push(timer);
+               });
+           },
+            error: function (data) {
+                $(".modal-body").empty();
+                $(".modal-body").append("ERROR!");
+            },
+        });
+    }
+
+    function getProgress(fileName,timer) {
+        timer = setInterval(function(){
+            $.ajax({
+                url: './getRightProgress',
+                type: 'POST',
+                dataType: 'text',
+                data: {
+                    file_name: fileName,
+                },
+                success: function (data) {
+                    if(window.console){
+                        console.log("get_progress_success:"+fileName+",data="+data);
+                    }
+                    //更新ui
+                    $("div[name='"+fileName+"_p']").attr("aria-valuenow",data).width(data+"%").text(data+"%");
+
+                    if(data==100){
+                        console.log("complete progress:"+fileName);
+                        clearInterval(timer);
+                        $("button[name='"+fileName+"_d']").removeAttr("disabled");
+                    }
+                },
+                error: function(data){
+                    if(window.console){
+                        console.log("get_progress_error:"+fileName+",data="+data);
+                    }
+                    clearInterval(timer);
+                }
+            });
+        }, 500);
+    }
 
     $("#btnTest").click(function () {
         $.ajax({
@@ -176,215 +313,95 @@ background-size: 50%;background-position-x: right;background-position-y: bottom;
             }
         })
     });
-    $("#mergeTs").click(function () {
-        $.ajax({
-            url : './mergeTs',
-            type : 'GET',
-            success : function (data) {
-                if(window.console){
-                    console.log("success: "+data);
-                }
-            },
-            error : function (data) {
-                if(window.console){
-                    console.log("error: "+data);
-                }
-            }
-        })
-    });
-    $("#delFiles").click(function () {
-        $.ajax({
-            url : './deleteFiles',
-            type : 'GET',
-            success : function (data) {
-                if(window.console){
-                    console.log("success: "+data);
-                }
-            },
-            error : function (data) {
-                if(window.console){
-                    console.log("error: "+data);
-                }
-            }
-        })
-    });
-    $("#download").click(function () {
-        $("#form-by-file").ajaxSubmit({
-            url : './download',
-            type : 'post',
-            dataType : 'JSON',
-            beforeSend : function () {
-                $("#mySmallModal").modal({
-                    backdrop : 'static',
-                    keyboard : false,
-                });
-                $("#mySmallModal").modal('show');
-                $("#downStart").attr("disabled","disabled").text("点击下载");
-            },
-            success : function (data) {
-                if(window.console){
-                    console.log("success: data.code=["+data.code+"],data.msg=["+data.msg+"]");
-                    console.log("success: data.url=["+data.url+"]");
-                }
-                getProgress(data.msg,'./getMiddleProgress');
-                $("#downStart").on("click",function () {
-                    var form1 = $('<form></form>');
-                    form1.attr("action","./getLocalFile");
-                    form1.attr("method","POST");
-                    var input1 = $("<input type='hidden' name='local_url' />");
-                    input1.attr("value",data.url);
-                    form1.append(input1);
-                    form1.appendTo("body");
-                    form1.css("display",'none');
-                    form1.submit();
-                });
-            },
-            error : function (data) {
-                if(window.console){
-                    console.log("error: data.code=["+data.code+"],data.msg=["+data.msg+"]");
-                    console.log("error: data.url=["+data.url+"]");
-                }
-                $("#downStart").removeAttr("disabled").text("搜寻失败");
-            },
-            complete : function () {
 
-            }
-        })
-    });
-    $("#download_right").click(function () {
-        $("#form-right").ajaxSubmit({
-            url : './download_no_file',
-            type : 'post',
-            dataType : 'JSON',
-            beforeSend : function () {
-                $("#mySmallModal").modal({
-                    backdrop : 'static',
-                    keyboard : false,
-                });
-                $("#mySmallModal").modal('show');
-                $("#downStart").attr("disabled","disabled").text("点击下载");
-            },
-            success : function (data) {
-                if(window.console){
-                    console.log("success: data.code=["+data.code+"],data.msg=["+data.msg+"]");
-                    console.log("success: data.url=["+data.url+"]");
-                }
-                getProgress(data.msg,'./getRightProgress');
-                $("#downStart").on("click",function () {
-                    var form1 = $('<form></form>');
-                    form1.attr("action","./getLocalFile");
-                    form1.attr("method","POST");
-                    var input1 = $("<input type='hidden' name='local_url' />");
-                    input1.attr("value",data.url);
-                    form1.append(input1);
-                    form1.appendTo("body");
-                    form1.css("display",'none');
-                    form1.submit();
-                });
-                //$("#mySmallModal").modal('hide');
-            },
-            error : function (data) {
-                if(window.console){
-                    console.log("error: data.code=["+data.code+"],data.msg=["+data.msg+"]");
-                    console.log("error: data.url=["+data.url+"]");
-                }
-                $("#downStart").removeAttr("disabled").text("搜寻失败");
-                //$("#mySmallModal").modal('hide');
-            },
-            complete : function () {
-
-            }
-        })
-    });
     $("#download_left").click(function () {
         //不能用ajax下载文件
-        $("#form-left").attr("action","./getFileByUrl");
+        $("#form-left").attr("action","./getFileByLeft");
         $("#form-left").attr("method","post");
         $("#form-left").submit();
         /*$("#form-left").ajaxSubmit({
-            url : './getFileByUrl',
-            type : 'POST',
+            //
+        })*/
+    });
+    $("#download_right").click(function () {
+        $("#form-right").ajaxSubmit({
+            url : './getFileByRight',
+            type : 'post',
             dataType : 'JSON',
             beforeSend : function () {
-
+                $("#mySmallModal").modal({
+                    backdrop : 'static',
+                    keyboard : false,
+                });
+                $("#mySmallModal").find(".modal-body").empty();
+                $("#mySmallModal").find(".modal-body").append(loading_div);
+                $("#mySmallModal").modal('show');
             },
             success : function (data) {
                 if(window.console){
-                    console.log("success: "+data);
+                    console.log("success: data.code=["+data.code+"],data.msg/fileName=["+data.msg+"]");
+                    console.log("success: data.url=["+data.url+"]");
                 }
+                if("01"==data.code){
+                    $(".modal-body").append("链接错误");
+                }else {
+                    getTaskList();
+                }
+                //getProgress(data.msg,'./getRightProgress');
+                /*$("#downStart").on("click",function () {
+                    var form1 = $('<form></form>');
+                    form1.attr("action","./getLocalFile");
+                    form1.attr("method","POST");
+                    var input1 = $("<input type='hidden' name='local_url' />");
+                    input1.attr("value",data.url);
+                    form1.append(input1);
+                    form1.appendTo("body");
+                    form1.css("display",'none');
+                    form1.submit();
+                });*/
+                //$("#mySmallModal").modal('hide');
             },
             error : function (data) {
                 if(window.console){
-                    console.log("error: "+data);
+                    console.log("error: data.code=["+data.code+"],data.msg=["+data.msg+"]");
+                    console.log("error: data.url=["+data.url+"]");
                 }
+                //$("#downStart").removeAttr("disabled").text("搜寻失败");
+                //$("#mySmallModal").modal('hide');
             },
             complete : function () {
 
             }
-        })*/
+        })
     });
-    var timer;
-    function getProgress(total,url) {
-        timer = setInterval(function(){
-            $.ajax({
-                url: url,
-                type: 'POST',
-                dataType: 'text',
-                data: {
-                    total : total,
-                },
-                success: function (data) {
-                    if(window.console){
-                        console.log("get_progress_success:"+data);
-                        /*console.log(data==100);//true
-                        console.log(data=='100');//true*/
-                    }
-                    //更新ui
-                    $("#myProgress").attr("aria-valuenow",data).width(data+"%").text(data+"%");
-
-                    if(data==100){
-                        console.log("complete progress");
-                        clearInterval(timer);
-                        $("#downStart").removeAttr("disabled");
-                    }
-                },
-                error: function(data){
-                    if(window.console){
-                        console.log("get_progress_error:"+data);
-                    }
-                    clearInterval(timer);
-                }
-            });
-        }, 500);
-    }
 
     function getVideoAddress() {
-
         $.ajax({
-            url: '/app/getAll',
+            url: './getVideoAddr',
             type: 'GET',
             dataType: 'json',
             success: function (data) {
                 if(window.console){
-                    console.log("/app/getAll success: "+data+" , dataSize:"+data.size+" , dataLength:"+data.length);
+                    console.log("/getVideoAddr success: "+data+" , dataSize:"+data.size+" , dataLength:"+data.length);
                     console.log("success test: "+data[0].fileName);
                 }
                 var str = "";
                 for(var i=0;i<data.length;i++){
-                    str += "<tr width='100%'><td class='singleLine' width='5%'>" + (i+1) +
-                        "</td><td class='singleLine' width='10%'>" + data[i].fileName +
-                        "</td><td class='singleLine' width='10%'>" + data[i].fileEpisode +
-                        "</td><td class='singleLine' width='25%'>" + data[i].filePath +
-                        "</td><td class='singleLine' width='20%'>" + data[i].filePic +
-                        "</td><td class='singleLine' width='5%'>" + data[i].fileSize +
-                        "</td><td class='singleLine' width='5%'>" + data[i].fileDuration +
-                        "</td><td class='singleLine' width='20%'>" + data[i].fileDescribe + "</td></tr>";
+                    str += "<tr><td class='singleLine'>" + (i+1) +
+                        "</td><td class='singleLine'>" + data[i].fileName +
+                        "</td><td class='singleLine'>" + data[i].fileEpisode +
+                        "</td><td class='singleLine' data-toggle='tooltip' data-placement='top' title='" +
+                            data[i].filePath + "'>" + data[i].filePath +
+                        "</td><td class='singleLine'>" + data[i].filePic +
+                        "</td><td class='singleLine'>" + data[i].fileSize +
+                        "</td><td class='singleLine'>" + data[i].fileDuration +
+                        "</td><td class='singleLine'>" + data[i].fileDescribe + "</td></tr>";
                 }
                 $("#video_address").find("tbody").html(str);
             },
             error: function(data){
                 if(window.console){
-                    console.log("/app/getAll error: "+data);
+                    console.log("/getVideoAddr error: "+data);
                 }
             }
         });

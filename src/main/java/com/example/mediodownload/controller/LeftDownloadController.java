@@ -1,6 +1,7 @@
 package com.example.mediodownload.controller;
 
 import com.example.mediodownload.model.RespModel;
+import com.example.mediodownload.utils.OkhttpUtil;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -15,31 +16,34 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 @RestController
-public class FileDownloadController {
+@RequestMapping(value = "/chicz")
+public class LeftDownloadController {
 
-    @RequestMapping(value = "/chicz/getFileByUrl", method = RequestMethod.POST)
-    private RespModel fileDownload(HttpServletResponse response, @RequestParam("file_url") String url){
-        RespModel respModel = new RespModel();
+    @RequestMapping(value = "/getFileByLeft", method = RequestMethod.POST)
+    private void fileDownload(HttpServletResponse response, @RequestParam("file_url") String url){
+        //RespModel respModel = new RespModel();
         if(url==null || "".equals(url)){
-            respModel.setCode("01");
-            respModel.setMsg("地址不正确");
-            return respModel;
+            /*respModel.setCode("01");
+            respModel.setMsg("地址不能为空");
+            return respModel;*/
+            return;
         }
 
         InputStream inputStream = null;
         OutputStream outputStream = null;
         Response response_temp = null;
-        /* 设置文件ContentType类型，这样设置，会自动判断下载文件类型 */
-        response.setContentType("multipart/form-data");
+
+        response.reset();
+        response.setContentType("application/x-download");
         /* 设置文件头：最后一个参数是设置下载文件名 */
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd_HH-mm-ss-SSS");
-        response.setHeader("Content-Disposition", "attachment;filename="+sdf.format(new Date())+".m3u8");
+        response.setHeader("Content-Disposition", "attachment;filename="+sdf.format(new Date()));
         //BufferedReader bufferedReader = null;
         int len;
-        Request.Builder builder = new Request.Builder().url(url);
-        OkHttpClient okHttpClient = DiliDiliDLController.generatorClient();
+        Request request = OkhttpUtil.getRequest(url);
+        OkHttpClient okHttpClient = OkhttpUtil.generatorClient();
         try {
-            response_temp = okHttpClient.newCall(builder.build()).execute();
+            response_temp = okHttpClient.newCall(request).execute();
             inputStream = response_temp.body().byteStream();
             outputStream = response.getOutputStream();
             byte[] bytes = new byte[1024];
@@ -48,6 +52,7 @@ public class FileDownloadController {
                 outputStream.write(bytes,0,len);
             }
             System.out.println("---------------------------------------------------");
+            response_temp.body().close();
         }catch (IOException e){
             e.printStackTrace();
         }finally {
@@ -63,7 +68,6 @@ public class FileDownloadController {
                 e.printStackTrace();
             }
         }
-        return respModel;
+        //return respModel;
     }
-
 }
